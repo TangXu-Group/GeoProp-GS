@@ -40,9 +40,6 @@ Extensive experiments demonstrate that GeoProp-GS achieves state-of-the-art perf
 
 **Keywords:** Aerial Photogrammetry · Aerial-view Sparse Novel View Synthesis · 3D Gaussian Splatting
 
-> ** Upcoming Release**
->
-> The benchmark datasets and DGI initialization models will be publicly released in **August 2026**. We will also provide a more comprehensive README with detailed instructions and examples.
 
 
 ---
