@@ -44,36 +44,6 @@ Extensive experiments demonstrate that GeoProp-GS achieves state-of-the-art perf
 >
 > The benchmark datasets and DGI initialization models will be publicly released in **August 2026**. We will also provide a more comprehensive README with detailed instructions and examples.
 
----
-
-## Highlights
-
-<table>
-  <tr>
-    <td><strong>DGI</strong></td>
-    <td>Dense, metric-aware geometry initialization from sparse aerial observations.</td>
-  </tr>
-  <tr>
-    <td><strong>GVA</strong></td>
-    <td>Geometry-aware virtual anchors for unobserved regions.</td>
-  </tr>
-  <tr>
-    <td><strong>AGO</strong></td>
-    <td>Anchor-constrained Gaussian optimization with learnable residuals.</td>
-  </tr>
-  <tr>
-    <td><strong>Plug-and-play</strong></td>
-    <td>Compatible with existing 3D Gaussian Splatting pipelines.</td>
-  </tr>
-</table>
-
-<p align="center">
-  <strong>Dense Initialization</strong>
-  <span style="color:#9ca3af;"> → </span>
-  <strong>Virtual Anchors</strong>
-  <span style="color:#9ca3af;"> → </span>
-  <strong>Anchor-constrained Optimization</strong>
-</p>
 
 ---
 
