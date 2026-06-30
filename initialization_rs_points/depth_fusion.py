@@ -547,7 +547,7 @@ def project_sparse_depth(
 
 def hierarchical_depth_correction(pred_depth, sparse_depth, sparse_mask, device='cuda'):
     """
-    分层修正策略
+    Apply hierarchical depth correction with sparse depth constraints.
     """
     if pred_depth.dim() > 2:
         pred_depth = pred_depth.squeeze()
@@ -557,42 +557,37 @@ def hierarchical_depth_correction(pred_depth, sparse_depth, sparse_mask, device=
     sparse_depth = sparse_depth.to(device)
     sparse_mask = sparse_mask.to(device)
     
-    # ===== 步骤1: 全局scale/shift对齐 =====
+    # Step 1: global scale and shift alignment.
     scale, shift = calc_scale_shift(sparse_depth, pred_depth, sparse_mask, device=device)
     corrected = pred_depth * scale + shift
     
-    # ===== 步骤2: 计算修正场（只在稀疏点有值）=====
+    # Step 2: compute a residual correction field at sparse depth samples.
     correction_field = torch.zeros_like(corrected)
     correction_field[sparse_mask] = sparse_depth[sparse_mask] - corrected[sparse_mask]
     
-    # ===== 步骤3: 用距离加权插值扩散修正场 =====
+    # Step 3: propagate the correction field with distance-based weights.
     from scipy.ndimage import distance_transform_edt, generic_filter
     
-    # 距离变换
     mask_np = sparse_mask.cpu().numpy()
     distance_map = distance_transform_edt(~mask_np)
     
-    # 最近邻插值修正值
     from scipy.ndimage import distance_transform_edt
     indices = distance_transform_edt(~mask_np, return_indices=True)[1]
     correction_interpolated = correction_field.cpu().numpy()[indices[0], indices[1]]
     
-    # 距离加权：离稀疏点越远，修正越小
-    max_influence = 100  # 最大影响距离（像素）
+    max_influence = 100
     weight = np.exp(-distance_map / max_influence)
     correction_smooth = correction_interpolated * weight
     
     correction_smooth = torch.from_numpy(correction_smooth).float().to(device)
     
-    # 应用修正
     final_depth = corrected + correction_smooth
     
-    # ===== 步骤4: 边界特殊处理（用中值滤波平滑） =====
+    # Step 4: smooth boundary regions with a median filter.
     from scipy.ndimage import median_filter
     
     final_np = final_depth.cpu().numpy()
     
-    # 只对边界区域做中值滤波
     margin = 100
     boundary_mask_np = np.zeros((H, W), dtype=bool)
     boundary_mask_np[:margin, :] = True
@@ -600,11 +595,9 @@ def hierarchical_depth_correction(pred_depth, sparse_depth, sparse_mask, device=
     boundary_mask_np[:, :margin] = True
     boundary_mask_np[:, -margin:] = True
     
-    # 对边界做平滑
     final_np_smooth = median_filter(final_np, size=10)
     final_np[boundary_mask_np] = final_np_smooth[boundary_mask_np]
     
-    # 再次确保稀疏点精确
     final_depth = torch.from_numpy(final_np).float().to(device)
     final_depth[sparse_mask] = sparse_depth[sparse_mask]
     
